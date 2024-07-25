@@ -79,7 +79,7 @@ The data was processed using Scala scripts in Apache Spark. Key steps included:
    ```scala
    roundedDF.coalesce(1).write.mode("overwrite").format("csv").option("sep", ",").option("header", "true").save("/opt/bitnami/logstash/data/processed/")
     ```
-**   Final Dataset is saved to logstash/data/games_result_processed.csv **
+**Final Dataset is saved to logstash/data/games_result_processed.csv**
 
 ### Data Format
 #### Key Fields in the Result Dataset:
