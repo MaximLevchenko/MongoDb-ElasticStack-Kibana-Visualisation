@@ -1,0 +1,659 @@
+1. List the top 5 languages with the most comments on movies, and provide the count of comments for each language.
+
+db.comments.aggregate([
+  // Perform a lookup to get movie details based on the movie_id field in comments
+  {
+    $lookup: {
+      from: "movies",
+      localField: "movie_id",
+      foreignField: "_id",
+      as: "movieDetails"
+    }
+  },
+  {
+    $unwind: "$movieDetails"
+  },
+  // Group the data by language and count the number of comments for each language
+  {
+    $group: {
+      _id: "$movieDetails.languages",
+      commentCount: { $sum: 1 }
+    }
+  },
+  // Unwind the languages array to get individual language entries
+  {
+    $unwind: "$_id"
+  },
+  // Group by language and sum the comment count
+  {
+    $group: {
+      _id: "$_id",
+      commentCount: { $sum: "$commentCount" }
+    }
+  },
+  // Sort the languages based on comment count in descending order
+  {
+    $sort: {
+      commentCount: -1
+    }
+  },
+  // Limit the result to the top 5 languages
+  {
+    $limit: 5
+  }
+]);
+
+2. Find 5 movies rated less than 6.0 on imdb which have the most amount of comments 
+
+db.movies.aggregate([
+  {
+    // Stage 1: Match movies with an IMDb rating less than 6.0
+    $match: {
+      "imdb.rating": { $lt: 6.0 }
+    }
+  },
+  // Stage 2: Perform a lookup to get comments associated with each movie
+  {
+    $lookup: {
+      from: "comments",
+      localField: "_id",
+      foreignField: "movie_id",
+      as: "comments"
+    }
+  },
+  // Stage 3: Project only specific fields (title, imdb, and commentCount)
+  {
+    $project: {
+      title: 1,
+      imdb: 1,
+      commentCount: { $size: "$comments" }
+    }
+  },
+  // Stage 4: Sort movies based on the comment count in descending order
+  {
+    $sort: { commentCount: -1 }
+  },
+  // Stage 5: Limit the result to the top 5 movies
+  {
+    $limit: 5
+  }
+]);
+
+3. Determine the top 5 directors with the highest average IMDb rating for movies they directed, considering only directors with at least 5 movies.
+
+db.movies.aggregate([
+  // Stage 1: Unwind the directors array to create a separate document for each director
+  {
+    $unwind: "$directors"
+  },
+  // Stage 2: Group movies by director and calculate the count and average IMDb rating
+  {
+    $group: {
+      _id: "$directors",
+      movieCount: { $sum: 1 },
+      averageRating: { $avg: "$imdb.rating" }
+    }
+  },
+  // Stage 3: Match directors with at least 5 movies
+  {
+    $match: {
+      movieCount: { $gte: 5 }
+    }
+  },
+  // Stage 4: Sort directors by average rating in descending order
+  {
+    $sort: { averageRating: -1 }
+  },
+  // Stage 5: Limit the result to the top 5 directors
+  {
+    $limit: 5
+  }
+]);
+
+4. Find 10 people which left the most comments on movies with rating higher than 6 on imdb and which include Leonardo DiCaprio in the cast of the film and show names of the movies
+
+db.comments.aggregate([
+  // Stage 1: Perform a lookup to get movie details based on the movie_id field in comments
+  {
+    $lookup: {
+      from: "movies",
+      localField: "movie_id",
+      foreignField: "_id",
+      as: "movieDetails"
+    }
+  },
+  // Stage 2: Unwind the movieDetails array to flatten the documents
+  {
+    $unwind: "$movieDetails"
+  },
+  // Stage 3: Match movies with IMDb rating greater than 6 and cast including "Leonardo DiCaprio"
+  {
+    $match: {
+      "movieDetails.imdb.rating": { $gt: 6 },
+      "movieDetails.cast": "Leonardo DiCaprio"
+    }
+  },
+  // Stage 4: Group the data by user_id and calculate the comment count for each user
+  {
+    $group: {
+      _id: "$user_id",
+      userName: { $first: "$name" },
+      commentCount: { $sum: 1 }
+    }
+  },
+  // Stage 5: Sort the users based on comment count in descending order
+  {
+    $sort: { commentCount: -1 }
+  },
+  // Stage 6: Limit the result to the top 10 users
+  {
+    $limit: 10
+  }
+]);
+
+5. Select 10 users who have commented the most on the movies with rating above 7 and of genre "Action"
+
+db.comments.aggregate([
+  // Stage 1: Perform a lookup to join with the "movies" collection
+  {
+    $lookup: {
+      from: "movies",
+      localField: "movie_id",
+      foreignField: "_id",
+      as: "movieDetails"
+    }
+  },
+  // Stage 2: Unwind the "movieDetails" array to flatten it
+  { $unwind: "$movieDetails" },
+  // Stage 3: Match documents based on specified conditions
+  {
+    $match: {
+      "movieDetails.genres": { $in: ["Action"] },
+      "movieDetails.imdb.rating": { $gt: 7 }
+    }
+  },
+  // Stage 4: Group documents by user_id, calculate comment count, and collect unique movie titles
+  {
+    $group: {
+      _id: "$user_id",
+      userName: { $first: "$name" },
+      commentCount: { $sum: 1 },
+      movies: { $addToSet: "$movieDetails.title" }
+    }
+  },
+  // Stage 5: Sort the result by commentCount in descending order
+  { $sort: { commentCount: -1 } },
+  // Stage 6: Limit the result to 10 documents
+  { $limit: 10 }
+]);
+
+6. Retrieve users who made comments on movies released in the 2000s (year > 1999) and have an IMDb rating above 8.0.
+db.comments.aggregate([
+  // Stage 1: Perform a lookup to join with the "embedded_movies" collection
+  {
+    $lookup: {
+      from: "embedded_movies",
+      localField: "movie_id",
+      foreignField: "_id",
+      as: "movieDetails"
+    }
+  },
+  // Stage 2: Unwind the "movieDetails" array to flatten it
+  { $unwind: "$movieDetails" },
+  // Stage 3: Match documents based on specified conditions
+  {
+    $match: {
+      "movieDetails.year": { $gt: 1999 },
+      "movieDetails.imdb.rating": { $gt: 8.0 }
+    }
+  },
+  // Stage 4: Group documents by user_id, calculate comment count, and collect movie details
+  {
+    $group: {
+      _id: "$user_id",
+      userName: { $first: "$name" },
+      commentCount: { $sum: 1 },
+      movies: {
+        $addToSet: {
+          title: "$movieDetails.title",
+          year: "$movieDetails.year"
+        }
+      }
+    }
+  },
+  // Stage 5: Sort the result by commentCount in descending order
+  { $sort: { commentCount: -1 } },
+  // Stage 6: Limit the result to 10 documents
+  { $limit: 10 }
+]);
+
+7. Retrieve all movies that the user "Tormund Giantsbane" has commented on and find the 5 most popular genres based on his comments
+
+// Specify the username for which you want to find movies and genres
+var userName = "Tormund Giantsbane";
+
+// Perform a lookup to get movie details based on the movie_id field in comments
+db.comments.aggregate([
+  {
+    $lookup: {
+      from: "movies",
+      localField: "movie_id",
+      foreignField: "_id",
+      as: "movieDetails"
+    }
+  },
+  {
+    $unwind: "$movieDetails"
+  },
+  // Perform another lookup to get user details based on the user_id field in comments
+  {
+    $lookup: {
+      from: "users",
+      localField: "user_id",
+      foreignField: "_id",
+      as: "userDetails"
+    }
+  },
+  {
+    $unwind: "$userDetails"
+  },
+  // Match the documents where the username matches the specified username
+  {
+    $match: {
+      "userDetails.name": userName
+    }
+  },
+  // Group the data by movie_id and push genres into an array
+  {
+    $group: {
+      _id: "$movieDetails._id",
+      genres: { $push: "$movieDetails.genres" }
+    }
+  },
+  {
+    $unwind: "$genres"
+  },
+  {
+    $unwind: "$genres"
+  },
+  // Group the data by genre and calculate the comment count for each genre
+  {
+    $group: {
+      _id: "$genres",
+      commentCount: { $sum: 1 }
+    }
+  },
+  // Project to rename _id to genre_name
+  {
+    $project: {
+      genre_name: "$_id",
+      commentCount: 1,
+      _id: 0
+    }
+  },
+  // Sort the genres based on comment count in descending order
+  {
+    $sort: {
+      commentCount: -1
+    }
+  },
+  // Limit the result to the top 5 genres
+  {
+    $limit: 5
+  }
+]);
+
+
+8. Select the top 10 users who have commented the most on movies in genres either "Action" or "Comedy" with an IMDb rating greater than 7
+db.comments.aggregate([
+  // Perform a lookup to get movie details based on the movie_id field in comments
+  {
+    $lookup: {
+      from: "movies",
+      localField: "movie_id",
+      foreignField: "_id",
+      as: "movieDetails"
+    }
+  },
+  {
+    $unwind: "$movieDetails"
+  },
+  // Match movies with genres either "Action" or "Comedy" and IMDb rating greater than 7
+  {
+    $match: {
+      $or: [
+        { "movieDetails.genres": "Action" },
+        { "movieDetails.genres": "Comedy" }
+      ],
+      "movieDetails.imdb.rating": { $gt: 7 }
+    }
+  },
+  // Perform another lookup to get user details based on the user_id field in comments
+  {
+    $lookup: {
+      from: "users",
+      localField: "user_id",
+      foreignField: "_id",
+      as: "userDetails"
+    }
+  },
+  {
+    $unwind: "$userDetails"
+  },
+  // Group the data by user_id and calculate the comment count for each user
+  {
+    $group: {
+      _id: "$userDetails._id",
+      userName: { $first: "$userDetails.name" },
+      commentCount: { $sum: 1 }
+    }
+  },
+  // Sort the users based on comment count in descending order
+  {
+    $sort: {
+      commentCount: -1
+    }
+  },
+  // Limit the result to the top 10 users
+  {
+    $limit: 10
+  }
+]);
+
+9. Select all street addresses of the theathers which have at least one of the 10 top rated by imdb rating movies in Mystery genre 
+
+db.theaters.aggregate([
+  // Perform a lookup to get movie details based on the theater_ids field in movies
+  {
+    $lookup: {
+      from: "movies",
+      localField: "_id",
+      foreignField: "theater_ids",
+      as: "topRatedMovies"
+    }
+  },
+  // Unwind the array of movies
+  {
+    $unwind: "$topRatedMovies"
+  },
+  // Match movies with genres "Mystery" and IMDb rating greater than 7
+  {
+    $match: {
+      "topRatedMovies.genres": "Mystery",
+      "topRatedMovies.imdb.rating": { $gt: 7 }
+    }
+  },
+  // Group by theater and collect the distinct street addresses
+  {
+    $group: {
+      _id: "$_id",
+      streetAddresses: { $addToSet: "$location.address.street1" }
+    }
+  },
+  // Match theaters with at least one top-rated movie
+  {
+    $match: {
+      streetAddresses: { $exists: true, $ne: [] }
+    }
+  },
+  // Project to show only the street addresses
+  {
+    $project: {
+      _id: 0,
+      streetAddresses: 1
+    }
+  }
+]);
+
+10. Select 10 street addresses of the theathers which have the most of the 10 top rated movies by imdb rated movies in Mystery genre
+
+db.theaters.aggregate([
+  // Perform a lookup to get movie details based on the theater_ids field in movies
+  {
+    $lookup: {
+      from: "movies",
+      localField: "_id",
+      foreignField: "theater_ids",
+      as: "topRatedMovies"
+    }
+  },
+  // Unwind the array of movies
+  {
+    $unwind: "$topRatedMovies"
+  },
+  // Match movies with genres "Mystery" and IMDb rating greater than 7
+  {
+    $match: {
+      "topRatedMovies.genres": "Mystery",
+      "topRatedMovies.imdb.rating": { $gt: 7 }
+    }
+  },
+  // Group by theater and count the number of top-rated movies
+  {
+    $group: {
+      _id: "$_id",
+      streetAddress: { $first: "$location.address.street1" },
+      movieCount: { $sum: 1 }
+    }
+  },
+  // Sort theaters based on the number of top-rated movies in descending order
+  {
+    $sort: {
+      movieCount: -1
+    }
+  },
+  // Limit the result to the top 10 theaters
+  {
+    $limit: 10
+  },
+  // Project to show only the street address and movie count
+  {
+    $project: {
+      _id: 0,
+      streetAddress: 1,
+      movieCount: 1
+    }
+  }
+]);
+
+11. List the top 5 theaters with the highest number of comments on Crime genre movies, and include the count of comments for each theater.
+
+db.comments.aggregate([
+  // Perform a lookup to get movie details based on the movie_id field in comments
+  {
+    $lookup: {
+      from: "movies",
+      localField: "movie_id",
+      foreignField: "_id",
+      as: "movieDetails"
+    }
+  },
+  {
+    $unwind: "$movieDetails"
+  },
+  // Match movies with the "Crime" genre
+  {
+    $match: {
+      "movieDetails.genres": "Crime"
+    }
+  },
+  // Perform another lookup to get theater details based on the movieDetails.theater_ids field
+  {
+    $lookup: {
+      from: "theaters",
+      localField: "movieDetails.theater_ids",
+      foreignField: "_id",
+      as: "theaterDetails"
+    }
+  },
+  {
+    $unwind: "$theaterDetails"
+  },
+  // Group the data by theater_id and calculate the comment count for each theater
+  {
+    $group: {
+      _id: "$theaterDetails._id",
+      theaterAddr: { $first: "$theaterDetails.location.address.street1" },
+      commentCount: { $sum: 1 }
+    }
+  },
+  // Sort the theaters based on comment count in descending order
+  {
+    $sort: {
+      commentCount: -1
+    }
+  },
+  // Limit the result to the top 5 theaters
+  {
+    $limit: 5
+  }
+]);
+
+12. Find the top 3 directors with the most comments on their movies, considering only movies with an IMDb rating above 8.
+
+db.comments.aggregate([
+  // Perform a lookup to get movie details based on the movie_id field in comments
+  {
+    $lookup: {
+      from: "movies",
+      localField: "movie_id",
+      foreignField: "_id",
+      as: "movieDetails"
+    }
+  },
+  {
+    $unwind: "$movieDetails"
+  },
+  // Match movies with IMDb rating above 8
+  {
+    $match: {
+      "movieDetails.imdb.rating": { $gt: 8 }
+    }
+  },
+  // Group the data by director and calculate the comment count for each director
+  {
+    $group: {
+      _id: { $arrayElemAt: ["$movieDetails.directors", 0] },
+      directorName: { $first: { $arrayElemAt: ["$movieDetails.directors", 0] } },
+      commentCount: { $sum: 1 }
+    }
+  },
+  // Sort the directors based on comment count in descending order
+  {
+    $sort: {
+      commentCount: -1
+    }
+  },
+  // Limit the result to the top 3 directors
+  {
+    $limit: 3
+  }
+]);
+
+13. Analyze the user engagement trends over the years by counting the number of comments each year, and identify the year with the highest user engagement.
+
+db.comments.aggregate([
+  // Project the year from the comment date
+  {
+    $project: {
+      year: { $year: "$date" }
+    }
+  },
+  // Group the data by year and calculate the comment count for each year
+  {
+    $group: {
+      _id: "$year",
+      commentCount: { $sum: 1 }
+    }
+  },
+  // Sort the years based on comment count in descending order
+  {
+    $sort: {
+      commentCount: -1
+    }
+  },
+  // Limit the result to the top 20 year with the highest user engagement, highest will be on top
+  {
+    $limit: 20
+  }
+]);
+
+14. Identify the top 3 genres with the highest average IMDb rating across all movies in each genre, considering only genres with at least 10 movies.
+
+db.movies.aggregate([
+  // Unwind the genres array
+  { $unwind: "$genres" },
+  // Group by genre, calculate average rating and count movies
+  {
+    $group: {
+      _id: "$genres",
+      averageRating: { $avg: "$imdb.rating" },
+      movieCount: { $sum: 1 }
+    }
+  },
+  // Filter genres with at least 10 movies
+  { $match: { movieCount: { $gte: 10 } } },
+  // Sort by average rating in descending order
+  { $sort: { averageRating: -1 } },
+  // Group again to get the top 3 genres for each genre
+  {
+    $group: {
+      _id: null,
+      genres: { $push: { genre: "$_id", averageRating: "$averageRating" } }
+    }
+  },
+  // Project to show only the top 3 genres
+  {
+    $project: {
+      _id: 0,
+      topGenres: { $slice: ["$genres", 3] }
+    }
+  }
+]);
+
+15. Analyze user engagement based on the day of the week, counting the number of comments for each weekday, and identify the day with the highest engagement
+
+db.comments.aggregate([
+  // Extract the day of the week from the "date" field
+  {
+    $addFields: {
+      dayOfWeek: { $dayOfWeek: "$date" }
+    }
+  },
+  // Map the numeric day to its corresponding name
+  {
+    $addFields: {
+      dayName: {
+        $switch: {
+          branches: [
+            { case: { $eq: ["$dayOfWeek", 1] }, then: "Sunday" },
+            { case: { $eq: ["$dayOfWeek", 2] }, then: "Monday" },
+            { case: { $eq: ["$dayOfWeek", 3] }, then: "Tuesday" },
+            { case: { $eq: ["$dayOfWeek", 4] }, then: "Wednesday" },
+            { case: { $eq: ["$dayOfWeek", 5] }, then: "Thursday" },
+            { case: { $eq: ["$dayOfWeek", 6] }, then: "Friday" },
+            { case: { $eq: ["$dayOfWeek", 7] }, then: "Saturday" }
+          ],
+          default: "Unknown"
+        }
+      }
+    }
+  },
+  // Group by the day of the week name and count the number of comments
+  {
+    $group: {
+      _id: "$dayName",
+      commentCount: { $sum: 1 }
+    }
+  },
+  // Sort by comment count in descending order
+  {
+    $sort: {
+      commentCount: -1
+    }
+  },
+  // Limit to the top days with the highest engagement, highest at the top
+  {
+    $limit: 7
+  }
+]);

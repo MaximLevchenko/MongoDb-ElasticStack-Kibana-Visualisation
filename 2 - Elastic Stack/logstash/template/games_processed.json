@@ -1,0 +1,48 @@
+{
+  "index_patterns": ["basketball_games*"],
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+    
+  },
+  "mappings": {
+    "dynamic": true,
+    "properties": {
+      "GAME_ID": {"type": "integer"},
+      "TEAM_ID": {"type": "integer"},
+      "GAME_DATE_EST": {"type": "date", "format": "yyyy-MM-dd"},
+      "TEAM_ID_home": {"type": "integer"},
+      "PTS_home": {"type": "float"},
+      "FG_PCT_home": {"type": "float"},
+      "FT_PCT_home": {"type": "float"},
+      "FG3_PCT_home": {"type": "float"},
+      "AST_home": {"type": "float"},
+      "REB_home": {"type": "float"},
+      "TEAM_ID_away": {"type": "integer"},
+      "PTS_away": {"type": "float"},
+      "FG_PCT_away": {"type": "float"},
+      "FT_PCT_away": {"type": "float"},
+      "FG3_PCT_away": {"type": "float"},
+      "AST_away": {"type": "float"},
+      "REB_away": {"type": "float"},
+      "HOME_TEAM_WINS": {"type": "boolean"},
+      "ABBREVIATION": {"type": "keyword"},
+      "PLAYER_ID_TEAM_HOME": {"type": "integer"},
+      "PLAYER_NAME": {"type": "keyword"},
+      "MIN": {"type": "keyword"},
+      "FG_PCT": {"type": "float"},
+      "FG3_PCT": {"type": "float"},
+      "FT_PCT": {"type": "float"},
+      "OREB": {"type": "float"},
+      "REB": {"type": "float"},
+      "AST": {"type": "float"},
+      "STL": {"type": "float"},
+      "BLK": {"type": "float"},
+      "PTS": {"type": "float"},
+      "PLUS_MINUS": {"type": "float"}
+    }
+  },
+  "template": {
+    "name": "logstash_template"
+  }
+}
