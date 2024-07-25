@@ -1,6 +1,6 @@
 # Project Overview
 
-This project showcases the integration of NoSQL technologies with the Elastic Stack for comprehensive data processing and visualization.
+This project showcases the use of NoSQL technologies and usage of Elastic Stack for comprehensive data processing and visualization.
 
 ## Description
 
