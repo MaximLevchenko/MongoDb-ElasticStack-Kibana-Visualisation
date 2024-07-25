@@ -6,7 +6,7 @@ The data processing workflow utilizes Apache Spark to merge data from three sepa
 
 ### Dataset Description
 
-#### games.csv 
+#### logstash/data/games.csv 
 Contains game-specific information including:
 - Date of the game
 - Unique game identifier
@@ -23,14 +23,14 @@ Also includes performance metrics for both home and away teams such as:
 - Assists (AST)
 - Rebounds (REB)
 
-#### games_details.csv
+#### logstash/data/games_details.csv
 Provides detailed metrics including:
 - Unique game identifiers
 - Team IDs, abbreviations, and locations
 - Player-centric statistics such as player IDs, names, nicknames, starting positions, minutes played, and various game statistics (field goals, three-pointers, free throws, rebounds, assists, steals, blocks, turnovers, personal fouls, points scored, and point differentials)
 - Additional comments or notes and timestamps for each record
 
-#### teams.csv
+#### logstash/data/teams.csv
 Includes team-specific details such as:
 - League ID, team ID
 - Active years range (**MIN_YEAR**, **MAX_YEAR**)
