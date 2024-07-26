@@ -33,15 +33,21 @@
 
 ## CAP Theorem🌐 <a name = "cap-theorem"></a>
 MongoDB gives preference to availability and partition tolerance over strong consistency. It attains high availability from sharding and network partitioning through the use of replica sets.
-## Architecture <a name = "architecture"></a>
+## Architecture <a name = "architecture"></a>🔑
 A **sharded cluster** where each of the three shards has a **primary with two secondary replicas** for MongoDB setup. This provides **maximum availability, fault tolerance, and scalability** for an architecture. It uses load balancing for routers and metadata management through the use of config servers.
-## Persistence <a name = "persistence"></a>
+## Persistence <a name = "persistence"></a>🔐
 Data durability is ensured through **replication**, write concern settings, and periodic backups. Replication across shards enhances fault tolerance and data availability.
-## Advantages and Disadvantages <a name = "advantages-and-disadvantages"></a>
-- **Advantages**: It provides a flexible schema, horizontal scaling, support for diverse data types, and enhanced fault tolerance through replication.
-- **Disadvantages**:  It is hard to deal with data consistency while maintaining it, and with sharding comes more complex system management.
+## ✅ **Advantages and Disadvantages of Using MongoDB for my project** ❌
+### Advantages ✅:
+- **Scalability** 📈: MongoDB is ideal for handling large volumes of unstructured data, making it perfect for managing detailed movie information, user comments, and theater details that can expand dynamically.
+- **Schema Flexibility** 🔄: The unstructured data model allows for easy adjustments to the data structure without the need for complex migrations, which is beneficial when updating metadata or adding new data points.
+- **Rapid Data Access** ⚡: MongoDB's indexing mechanisms enable fast query processing, which is crucial for features like real-time user reviews, movie metadata retrieval, and recommendation engines.
 
-## Custom Dataset Description <a name = "custom-dataset-description"></a>
+### Disadvantages ❌:
+- **Transactional Reliability** 🪛: MongoDB can be less reliable for ensuring atomic transactions compared to traditional relational databases, which might be critical for applications requiring consistent data states, such as real-time booking systems.
+- **Query Complexity** 🔍:  Implementing and optimizing complex queries, especially those requiring multiple joins, can be more challenging in MongoDB compared to SQL databases, potentially complicating detailed analytics.
+- **Resource Consumption** 💾: MongoDB may require more system resources to maintain high performance, especially with large datasets, potentially necessitating more robust hardware infrastructure.
+## Custom Dataset Description <a name = "custom-dataset-description"></a>📊
 ### Users:
 
 **Fields**: _id, name, email, password.
@@ -59,7 +65,7 @@ Data durability is ensured through **replication**, write concern settings, and 
 **Fields**: _id, title, plot, genres, runtime, cast, fullplot, languages, directors, rated, awards, year, imdb, countries, theater_ids.
 
 **Description**: Provides detailed metadata about movies, including their titles, plots, genres, runtimes, and cast lists. It also includes additional information such as languages, directors, awards, IMDb ratings, and associated theater IDs.
-## Conclusion <a name = "conclusion"></a>
+## Conclusion <a name = "conclusion"></a>🛡️
 Schema flexibility, sharding strategy, and potential security measures make MongoDB a winning data-intensive application choice—just like with the database for information about the movies. With choosing MongoDB also comes the consideration of increased complexity due to sharding and the scale of your application.
 ## Sources <a name = "sources"></a>
 - [MongoDB Cluster Docker Compose](https://github.com/minhhungit/mongodb-cluster-docker-compose)
