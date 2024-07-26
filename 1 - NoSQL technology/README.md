@@ -65,6 +65,18 @@ Data durability is ensured through **replication**, write concern settings, and 
 **Fields**: _id, title, plot, genres, runtime, cast, fullplot, languages, directors, rated, awards, year, imdb, countries, theater_ids.
 
 **Description**: Provides detailed metadata about movies, including their titles, plots, genres, runtimes, and cast lists. It also includes additional information such as languages, directors, awards, IMDb ratings, and associated theater IDs.
+
+### Theaters
+**Fields**: _id, name, address, city, state, zipcode, phone, location.
+
+**Description**: This dataset contains information about various theaters, including their names, locations, and contact details. The fields cover essential metadata such as the theater's address, city, state, and phone number, as well as geolocation data under the location field. This information is useful for mapping movie screenings to specific venues and for geo-based searches and analytics.
+
+### Embedded Movies
+
+**Fields**: _id, title, plot, genres, runtime, cast, fullplot, languages, directors, rated, awards, year, imdb, countries, theater_ids, comments.
+
+**Description**: This dataset is similar to the Movies dataset but also includes embedded comments directly within the movie documents. This means that each movie record not only includes comprehensive metadata like title, plot, genres, and cast but also contains a nested array of comments related to the movie. This structure facilitates more efficient retrieval and display of movie information along with user-generated content, making it ideal for applications that require a seamless integration of reviews and movie details.
+
 ## Conclusion <a name = "conclusion"></a>🛡️
 Schema flexibility, sharding strategy, and potential security measures make MongoDB a winning data-intensive application choice—just like with the database for information about the movies. With choosing MongoDB also comes the consideration of increased complexity due to sharding and the scale of your application.
 ## Sources <a name = "sources"></a>
